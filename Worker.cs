@@ -3,6 +3,10 @@ namespace WebSocketServer
 {
     public class Worker : BackgroundService
     {
+        private readonly ConcurrentQueue<string> _messageQueue = new();
+        private readonly ChatService _chatService;
+        private readonly ILogger _logger;
+
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
             var listener = new TcpListener(IPAddress.Any, 5000);
