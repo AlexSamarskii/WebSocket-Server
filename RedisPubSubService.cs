@@ -55,13 +55,66 @@
 
         public void Connect(List<string> connectionStrList)
         {
-            for (string i = 0; i < connectionStrList.Count; i++)
+            for (int i = 0; i < connectionStrList.Count; i++)
             {
                 var connectionStr = connectionStrList[i];
                 var redisConnection = new RedisConnection(i.ToString(), connectionStr);
                 _connections.Add(redisConnection);
             }
         }
+
+        public bool Subscribe(string channel, Action<string?, string?> handler)
+        {
+            var shardId = 0;
+            if (shardId >= _connections.Count)
+            { 
+                return false;
+            }
+
+            if (_channelActionDict.ContainsKey(channel))
+            {
+                return false;
+            }
+
+            var connection = _connections[shardId];
+            connection.Subscribe(channel, handler);
+            _channelActionDict.Add(channel, handler);
+            return true;
+        }
+
+        public bool Unsubscribe(string channel)
+        {
+            var shardId = 0;
+            if (shardId >= _connections.Count)
+            {
+                return false;
+            }
+
+            if (!_channelActionDict.ContainsKey(channel))
+            {
+                return false;
+            }
+
+            var connection = _connections[shardId];
+            connection.Unsubscribe(channel);
+            _channelActionDict.Remove(channel);
+            return true;
+        }
+
+        public async Task<bool> PublishAsync(string channel, string message)
+        {
+            var shardId = 0; 
+            if (shardId >= _connections.Count)
+            {
+                return false;
+            }
+
+            var connection = _connections[shardId];
+            await connection.PublishAsync(channel, message);
+            return true;
+        }
+
     }
+
 }
 

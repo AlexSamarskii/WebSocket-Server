@@ -7,3 +7,4 @@ global using System.Security.AccessControl;
 global using System.Collections.Generic;
 global using System.Net.Http;
 global using System.Net.WebSockets;
+global using StackExchange.Redis;
